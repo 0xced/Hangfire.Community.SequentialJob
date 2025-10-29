@@ -2,11 +2,25 @@
   "version": 1,
   "dependencies": {
     "net8.0": {
+      "Hangfire.Core": {
+        "type": "Direct",
+        "requested": "[1.8.0, )",
+        "resolved": "1.8.0",
+        "contentHash": "YyQwi1iKCS4HsKnwUhY5dcyxOeJ0MqA/0gjeTJdMsCXufKl73I+y8mS5MbvQBIKMGcjv0FYzjLA+v31P6G+CRw==",
+        "dependencies": {
+          "Newtonsoft.Json": "11.0.1"
+        }
+      },
       "MinVer": {
         "type": "Direct",
         "requested": "[6.0.0, )",
         "resolved": "6.0.0",
         "contentHash": "+/SsmiySsXJlvQLCGBqaZKNVt3s/Y/HbAdwtop7Km2CnuZbaScoqkWJEBQ5Cy9ebkn6kCYKrHsXgwrFdTgcb3g=="
+      },
+      "Newtonsoft.Json": {
+        "type": "Transitive",
+        "resolved": "11.0.1",
+        "contentHash": "pNN4l+J6LlpIvHOeNdXlwxv39NPJ2B5klz+Rd2UQZIx30Squ5oND1Yy3wEAUoKn0GPUj6Yxt9lxlYWQqfZcvKg=="
       }
     }
   }
