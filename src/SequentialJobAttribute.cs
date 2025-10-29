@@ -14,8 +14,11 @@ public sealed class SequentialJobAttribute : Attribute
     /// <param name="sequenceId"> The value that uniquely identifies the serial execution sequence. All jobs with the same ID are executed sequentially, in enqueueing order.</param>
     public SequentialJobAttribute(string sequenceId)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(sequenceId);
-        SequenceId = sequenceId;
+        SequenceId = sequenceId ?? throw new ArgumentNullException(nameof(sequenceId));
+        if (string.IsNullOrWhiteSpace(sequenceId))
+        {
+            throw new ArgumentException("The value cannot be an empty string or composed entirely of whitespace.", nameof(sequenceId));
+        }
     }
 
     /// <summary>

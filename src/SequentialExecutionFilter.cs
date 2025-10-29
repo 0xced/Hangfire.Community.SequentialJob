@@ -18,8 +18,11 @@ public class SequentialExecutionFilter : IElectStateFilter
     /// <exception cref="ArgumentException"><paramref name="sequenceId"/> is null or composed of white-spaces only.</exception>
     public SequentialExecutionFilter(string sequenceId)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(sequenceId);
-        SequenceId = sequenceId;
+        SequenceId = sequenceId ?? throw new ArgumentNullException(nameof(sequenceId));
+        if (string.IsNullOrWhiteSpace(sequenceId))
+        {
+            throw new ArgumentException("The value cannot be an empty string or composed entirely of whitespace.", nameof(sequenceId));
+        }
     }
 
     /// <summary>
@@ -48,7 +51,10 @@ public class SequentialExecutionFilter : IElectStateFilter
     /// <inheritdoc/>
     public void OnStateElection(ElectStateContext context)
     {
-        ArgumentNullException.ThrowIfNull(context);
+        if (context == null)
+        {
+            throw new ArgumentNullException(nameof(context));
+        }
 
         // Skip filter if the job is not transitioning to the enqueued state.
         if (context.CandidateState is not EnqueuedState)
@@ -82,7 +88,7 @@ public class SequentialExecutionFilter : IElectStateFilter
             context.Connection.SetJobParameter(context.BackgroundJob.Id, SequenceIdParameterName, SequenceId);
 
             // Update the last queued job id for the next job in the queue.
-            context.Connection.SetRangeInHash(LastJobIdHashName, [KeyValuePair.Create(SequenceId, context.BackgroundJob.Id)]);
+            context.Connection.SetRangeInHash(LastJobIdHashName, [new KeyValuePair<string, string>(SequenceId, context.BackgroundJob.Id)]);
         }
     }
 }
