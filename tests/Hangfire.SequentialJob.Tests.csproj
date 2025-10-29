@@ -1,0 +1,80 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AwesomeAssertions" Version="9.2.1" />
+    <PackageReference Include="coverlet.collector" Version="6.0.4" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.0" />
+    <PackageReference Include="PublicApiGenerator" Version="11.5.0" />
+    <PackageReference Include="ReportGenerator" Version="5.4.18" PrivateAssets="all" />
+    <PackageReference Include="Verify.Xunit" Version="31.2.0" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <VSTestLogger Include="trx%3BLogFileName=TestResults-$(TargetFramework).trx" Visible="false" Condition="$(ContinuousIntegrationBuild) == 'true'" />
+    <VSTestLogger Include="html%3BLogFileName=TestResults-$(TargetFramework).html" Visible="false" />
+  </ItemGroup>
+
+  <PropertyGroup Label="Coverage">
+    <RootDirectory>$([System.IO.Directory]::GetParent($(MSBuildProjectDirectory)))</RootDirectory>
+    <CoverageReportDirectory>$([System.IO.Path]::Combine($(RootDirectory),'coverage',$(TargetFramework)))</CoverageReportDirectory>
+    <VSTestResultsDirectory Condition="$(ContinuousIntegrationBuild) == 'true'">$(RootDirectory)</VSTestResultsDirectory>
+    <VSTestResultsDirectory Condition="$(ContinuousIntegrationBuild) != 'true'">$([System.IO.Path]::Combine($(CoverageReportDirectory),'results'))</VSTestResultsDirectory>
+    <VSTestCollect>XPlat Code Coverage</VSTestCollect>
+    <VSTestLogger>@(VSTestLogger)</VSTestLogger>
+  </PropertyGroup>
+
+  <Target Name="GenerateHtmlCoverageReport" AfterTargets="VSTest" Condition="$(TargetFramework) != ''">
+    <ItemGroup>
+      <CoverageReport Include="$(VSTestResultsDirectory)/*/coverage.cobertura.xml" />
+    </ItemGroup>
+    <ReportGenerator ReportFiles="@(CoverageReport)" TargetDirectory="$(CoverageReportDirectory)" ReportTypes="Html;TextSummary" />
+  </Target>
+
+  <!-- Because of https://github.com/microsoft/vstest/issues/2378 -->
+  <Target Name="MoveCoverageReport" AfterTargets="GenerateHtmlCoverageReport" Condition="$(TargetFramework) != ''">
+    <Move SourceFiles="@(CoverageReport)" DestinationFolder="$(CoverageReportDirectory)" />
+    <PropertyGroup>
+      <CoverageReport>@(CoverageReport)</CoverageReport>
+    </PropertyGroup>
+    <ItemGroup>
+      <CoverageReportParentDirectory Include="$([System.IO.Path]::Combine($(CoverageReport),'..'))" Condition="$(CoverageReport) != ''" />
+    </ItemGroup>
+    <RemoveDir Directories="@(CoverageReportParentDirectory)" />
+  </Target>
+
+  <Target Name="DisplayCoverageSummary" AfterTargets="MoveCoverageReport" Condition="$(TargetFramework) != ''">
+    <PropertyGroup>
+      <CatCommand Condition="!$([MSBuild]::IsOSPlatform('Windows'))">cat</CatCommand>
+      <CatCommand Condition="$([MSBuild]::IsOSPlatform('Windows'))">type</CatCommand>
+    </PropertyGroup>
+    <Exec WorkingDirectory="$(CoverageReportDirectory)" Command="$(CatCommand) Summary.txt" />
+  </Target>
+
+  <Target Name="OpenHtmlCoverageReport" AfterTargets="MoveCoverageReport" Condition="$(TargetFramework) != '' AND $(ContinuousIntegrationBuild) != 'true'">
+    <PropertyGroup>
+      <OpenCommand Condition="$([MSBuild]::IsOSPlatform('Linux'))">xdg-open</OpenCommand>
+      <OpenCommand Condition="$([MSBuild]::IsOSPlatform('OSX'))">open</OpenCommand>
+      <OpenCommand Condition="$([MSBuild]::IsOSPlatform('Windows'))">explorer</OpenCommand>
+    </PropertyGroup>
+    <!-- executing "explorer path\to\index.html" returns exit code 1, so we ignore it -->
+    <Exec WorkingDirectory="$(CoverageReportDirectory)" Command="$(OpenCommand) index.html" Condition="$(OpenCommand) != ''" IgnoreExitCode="true" />
+  </Target>
+
+  <ItemGroup>
+    <ProjectReference Include="../src/Hangfire.SequentialJob.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="PublicApi.*.cs" />
+    <None Include="PublicApi.*.cs" />
+  </ItemGroup>
+
+</Project>
