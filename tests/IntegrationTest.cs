@@ -5,6 +5,8 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using AwesomeAssertions;
 using AwesomeAssertions.Execution;
+using Hangfire.States;
+using Hangfire.Storage;
 using Hangfire.Storage.Monitoring;
 using Xunit;
 
@@ -17,16 +19,19 @@ public abstract class IntegrationTest(HangfireFixture fixture)
     public class Sqlite(HangfireFixture.Sqlite fixture) : IntegrationTest(fixture), IClassFixture<HangfireFixture.Sqlite>;
     public class SqlServer(HangfireFixture.SqlServer fixture) : IntegrationTest(fixture), IClassFixture<HangfireFixture.SqlServer>;
 
+    private readonly IBackgroundJobClientV2 _backgroundJobClient = fixture.BackgroundJobClient;
+    private readonly IMonitoringApi _monitoringApi = fixture.BackgroundJobClient.Storage.GetMonitoringApi();
+
     [Fact]
     public async Task Test()
     {
-        var jobId1 = fixture.EnqueueJob<TestJob>(o => o.Run("Hello 1"));
-        var jobId2 = fixture.EnqueueJob<TestJob>(o => o.Run("Hello 2"));
+        var jobId1 = _backgroundJobClient.Create<TestJob>(o => o.Run("Hello 1"), new EnqueuedState());
+        var jobId2 = _backgroundJobClient.Create<TestJob>(o => o.Run("Hello 2"), new EnqueuedState());
 
         await WaitAsync(stats => stats.Succeeded == 2, timeout: TimeSpan.FromSeconds(10));
 
-        var job1 = fixture.GetJobDetails(jobId1);
-        var job2 = fixture.GetJobDetails(jobId2);
+        var job1 = _monitoringApi.JobDetails(jobId1);
+        var job2 = _monitoringApi.JobDetails(jobId2);
 
         using (new AssertionScope())
         {
@@ -39,7 +44,7 @@ public abstract class IntegrationTest(HangfireFixture fixture)
     {
         var stopwatch = Stopwatch.StartNew();
 
-        while (!predicate(fixture.GetStatistics()))
+        while (!predicate(_monitoringApi.GetStatistics()))
         {
             if (stopwatch.Elapsed > timeout)
             {

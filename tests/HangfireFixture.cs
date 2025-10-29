@@ -1,12 +1,9 @@
 using System;
-using System.Linq.Expressions;
 using System.Threading.Tasks;
 using DotNet.Testcontainers.Builders;
 using DotNet.Testcontainers.Configurations;
 using DotNet.Testcontainers.Containers;
 using Hangfire.Common;
-using Hangfire.States;
-using Hangfire.Storage.Monitoring;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Testcontainers.Xunit;
@@ -24,23 +21,8 @@ public abstract class HangfireFixture : IAsyncLifetime
     public class SqlServer(IMessageSink messageSink) : SqlServerFixture(messageSink);
     // ReSharper restore ClassNeverInstantiated.Global
 
-    public string EnqueueJob<T>(Expression<Action<T>> job)
-    {
-        var backgroundJobClient = GetRequiredService<IBackgroundJobClientV2>();
-        return backgroundJobClient.Create(job, new EnqueuedState());
-    }
-
-    public JobDetailsDto GetJobDetails(string jobId)
-    {
-        var storage = GetRequiredService<JobStorage>();
-        return storage.GetMonitoringApi().JobDetails(jobId);
-    }
-
-    public StatisticsDto GetStatistics()
-    {
-        var storage = GetRequiredService<JobStorage>();
-        return storage.GetMonitoringApi().GetStatistics();
-    }
+    private IBackgroundJobClientV2? _backgroundJobClient;
+    public IBackgroundJobClientV2 BackgroundJobClient => _backgroundJobClient ?? throw new InvalidOperationException("The background job client is only available after initialization has completed.");
 
     private IHost? _host;
 
@@ -55,6 +37,8 @@ public abstract class HangfireFixture : IAsyncLifetime
         _host = app.Build();
 
         await InitializeDbAsync();
+
+        _backgroundJobClient = _host.Services.GetRequiredService<IBackgroundJobClientV2>();
 
         await _host.StartAsync();
     }
@@ -74,12 +58,6 @@ public abstract class HangfireFixture : IAsyncLifetime
     protected abstract Task DisposeDbAsync();
 
     protected abstract void ConfigureStorage(IGlobalConfiguration configuration);
-
-    private T GetRequiredService<T>() where T : notnull
-    {
-        var host = _host ?? throw new InvalidOperationException($"The host is only available after {nameof(IAsyncLifetime.InitializeAsync)} has run.");
-        return host.Services.GetRequiredService<T>();
-    }
 }
 
 public abstract class HangfireContainerFixture<TBuilderEntity, TContainerEntity>(ContainerFixture<TBuilderEntity, TContainerEntity> fixture) : HangfireFixture
