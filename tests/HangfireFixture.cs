@@ -6,13 +6,17 @@ using DotNet.Testcontainers.Builders;
 using DotNet.Testcontainers.Configurations;
 using DotNet.Testcontainers.Containers;
 using Hangfire.Common;
+using Hangfire.Mongo;
+using Hangfire.Mongo.Migration.Strategies;
 using Hangfire.PostgreSql;
 using Hangfire.States;
 using Hangfire.Storage.Monitoring;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using MongoDB.Driver;
 using Npgsql;
+using Testcontainers.MongoDb;
 using Testcontainers.MsSql;
 using Testcontainers.PostgreSql;
 using Testcontainers.Xunit;
@@ -23,6 +27,25 @@ namespace Hangfire.SequentialJob.Tests;
 
 public abstract class HangfireFixture : IAsyncLifetime
 {
+    public class Mongo(IMessageSink messageSink) : HangfireContainerFixture<MongoDbBuilder, MongoDbContainer>(new MongoFixture(messageSink))
+    {
+        protected override void ConfigureStorage(IGlobalConfiguration hangfire)
+        {
+            var connectionString = new MongoUrlBuilder(Container.GetConnectionString()) { DatabaseName = "admin" }.ToString();
+            var storageOptions = new MongoStorageOptions
+            {
+                MigrationOptions = new MongoMigrationOptions { MigrationStrategy = new DropMongoMigrationStrategy() },
+                QueuePollInterval = TimeSpan.FromSeconds(1),
+            };
+            hangfire.UseMongoStorage(connectionString, storageOptions);
+        }
+
+        private class MongoFixture(IMessageSink messageSink) : ContainerFixture<MongoDbBuilder, MongoDbContainer>(messageSink)
+        {
+            protected override MongoDbBuilder Configure(MongoDbBuilder builder) => builder.WithImage("mongo:8").WithReplicaSet();
+        }
+    }
+
     public class Postgres(IMessageSink messageSink) : HangfireContainerFixture<PostgreSqlBuilder, PostgreSqlContainer>(new PostgresFixture(messageSink))
     {
         protected override void ConfigureStorage(IGlobalConfiguration hangfire) => hangfire.UsePostgreSqlStorage(postgres => postgres.UseNpgsqlConnection(Container.GetConnectionString()));
@@ -47,7 +70,7 @@ public abstract class HangfireFixture : IAsyncLifetime
 
     public abstract class HangfireContainerFixture<TBuilderEntity, TContainerEntity>(ContainerFixture<TBuilderEntity, TContainerEntity> fixture) : HangfireFixture
         where TBuilderEntity : IContainerBuilder<TBuilderEntity, TContainerEntity, IContainerConfiguration>, new()
-        where TContainerEntity : IContainer, IDatabaseContainer
+        where TContainerEntity : IContainer
     {
         protected TContainerEntity Container => fixture.Container;
         protected override async Task InitializeDbAsync() => await ((IAsyncLifetime)fixture).InitializeAsync();
