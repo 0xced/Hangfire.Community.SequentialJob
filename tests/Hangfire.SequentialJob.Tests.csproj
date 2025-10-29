@@ -9,10 +9,22 @@
   <ItemGroup>
     <PackageReference Include="AwesomeAssertions" Version="9.2.1" />
     <PackageReference Include="coverlet.collector" Version="6.0.4" PrivateAssets="all" />
+    <PackageReference Include="Hangfire.Mongo" Version="1.12.1" />
+    <PackageReference Include="Hangfire.NetCore" Version="1.8.21" />
+    <PackageReference Include="Hangfire.PostgreSql" Version="1.20.12" />
+    <PackageReference Include="Hangfire.SqlServer" Version="1.8.21" />
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="6.1.2" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.10" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.10" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.0" />
+    <PackageReference Include="Npgsql" Version="9.0.4" />
     <PackageReference Include="NSubstitute" Version="5.3.0" />
     <PackageReference Include="PublicApiGenerator" Version="11.5.0" />
     <PackageReference Include="ReportGenerator" Version="5.4.18" PrivateAssets="all" />
+    <PackageReference Include="Testcontainers.MongoDb" Version="4.8.1" />
+    <PackageReference Include="Testcontainers.MsSql" Version="4.8.1" />
+    <PackageReference Include="Testcontainers.PostgreSql" Version="4.8.1" />
+    <PackageReference Include="Testcontainers.Xunit" Version="4.8.1" />
     <PackageReference Include="Verify.Xunit" Version="31.2.0" />
     <PackageReference Include="xunit" Version="2.9.3" />
     <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5" PrivateAssets="all" />
