@@ -14,6 +14,7 @@ namespace Hangfire.SequentialJob.Tests;
 
 public abstract class IntegrationTest(HangfireFixture fixture)
 {
+    public class Memory(HangfireFixture.Memory fixture) : IntegrationTest(fixture), IClassFixture<HangfireFixture.Memory>;
     public class Mongo(HangfireFixture.Mongo fixture) : IntegrationTest(fixture), IClassFixture<HangfireFixture.Mongo>;
     public class Postgres(HangfireFixture.Postgres fixture) : IntegrationTest(fixture), IClassFixture<HangfireFixture.Postgres>;
     public class Sqlite(HangfireFixture.Sqlite fixture) : IntegrationTest(fixture), IClassFixture<HangfireFixture.Sqlite>;
