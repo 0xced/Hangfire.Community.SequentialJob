@@ -14,6 +14,7 @@ public abstract class IntegrationTest(HangfireFixture fixture)
 {
     public class Mongo(HangfireFixture.Mongo fixture) : IntegrationTest(fixture), IClassFixture<HangfireFixture.Mongo>;
     public class Postgres(HangfireFixture.Postgres fixture) : IntegrationTest(fixture), IClassFixture<HangfireFixture.Postgres>;
+    public class Sqlite(HangfireFixture.Sqlite fixture) : IntegrationTest(fixture), IClassFixture<HangfireFixture.Sqlite>;
     public class SqlServer(HangfireFixture.SqlServer fixture) : IntegrationTest(fixture), IClassFixture<HangfireFixture.SqlServer>;
 
     [Fact]
