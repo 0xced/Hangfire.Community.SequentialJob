@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
@@ -40,19 +42,28 @@ public abstract class IntegrationTest : IDisposable
     [Fact]
     public async Task Test()
     {
-        var jobId1 = BackgroundJobClient.Create<TestJob>(o => o.Run("Hello 1"), new EnqueuedState());
-        var jobId2 = BackgroundJobClient.Create<TestJob>(o => o.Run("Hello 2"), new EnqueuedState());
+        var jobIds = new string[100];
+        for (var i = 0; i < jobIds.Length; i++)
+        {
+            var text = $"{i}";
+            jobIds[i] = BackgroundJobClient.Create<TestJob>(o => o.Run(text), new EnqueuedState());
+        }
 
-        await WaitAsync(stats => stats.Succeeded == 2, timeout: TimeSpan.FromSeconds(10));
-
-        var job1 = MonitoringApi.JobDetails(jobId1);
-        var job2 = MonitoringApi.JobDetails(jobId2);
+        await WaitAsync(stats => stats.Succeeded == jobIds.Length, timeout: TimeSpan.FromSeconds(10));
 
         using (new AssertionScope())
         {
-            job1.History.Select(e => e.StateName).Should().BeEquivalentTo("Succeeded", "Processing", "Enqueued");
-            job2.History.Select(e => e.StateName).Should().BeEquivalentTo("Succeeded", "Processing", "Enqueued", "Awaiting", "Enqueued");
+            GetStates(jobIds[0]).Should().BeEquivalentTo(["Succeeded", "Processing", "Enqueued"], because: "the first job should have transitioned through 3 states");
+            for (var i = 1; i < jobIds.Length; i++)
+            {
+                GetStates(jobIds[i]).Should().BeEquivalentTo(["Succeeded", "Processing", "Enqueued", "Awaiting", "Enqueued"], because: $"job #{i} should have transitioned through 5 states");
+            }
         }
+    }
+
+    private List<string> GetStates(string jobId)
+    {
+        return MonitoringApi.JobDetails(jobId).History.Select(e => e.StateName).ToList();
     }
 
     private async Task WaitAsync(Predicate<StatisticsDto> predicate, TimeSpan timeout, [CallerArgumentExpression(nameof(predicate))] string? predicateDescription = null)
@@ -70,12 +81,14 @@ public abstract class IntegrationTest : IDisposable
         }
     }
 
+    // ReSharper disable All
     [SequentialJob("my-sequence")]
     public class TestJob
     {
-        public void Run(string message)
+        [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Required for Hangfire")]
+        public string Run(string text)
         {
-            Console.WriteLine(message);
+            return text;
         }
     }
 }
