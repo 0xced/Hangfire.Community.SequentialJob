@@ -8,9 +8,9 @@ using Xunit.Abstractions;
 
 namespace Hangfire.SequentialJob.Tests;
 
-public class MongoFixture(IMessageSink messageSink) : HangfireContainerFixture<MongoDbBuilder, MongoDbContainer>(new DbFixture(messageSink))
+public class MongoFixture(IMessageSink messageSink) : HangfireContainerFixture<MongoDbBuilder, MongoDbContainer>(messageSink, new DbFixture(messageSink))
 {
-    protected override void ConfigureStorage(IGlobalConfiguration hangfire)
+    protected override string ConfigureStorage(IGlobalConfiguration hangfire)
     {
         var connectionString = new MongoUrlBuilder(Container.GetConnectionString()) { DatabaseName = "admin" }.ToString();
         var storageOptions = new MongoStorageOptions
@@ -19,6 +19,7 @@ public class MongoFixture(IMessageSink messageSink) : HangfireContainerFixture<M
             QueuePollInterval = TimeSpan.FromSeconds(1),
         };
         hangfire.UseMongoStorage(connectionString, storageOptions);
+        return "Mongo";
     }
 
     private class DbFixture(IMessageSink messageSink) : ContainerFixture<MongoDbBuilder, MongoDbContainer>(messageSink)

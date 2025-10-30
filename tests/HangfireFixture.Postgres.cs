@@ -7,11 +7,12 @@ using Xunit.Abstractions;
 
 namespace Hangfire.SequentialJob.Tests;
 
-public class PostgresFixture(IMessageSink messageSink) : HangfireContainerFixture<PostgreSqlBuilder, PostgreSqlContainer>(new DbFixture(messageSink))
+public class PostgresFixture(IMessageSink messageSink) : HangfireContainerFixture<PostgreSqlBuilder, PostgreSqlContainer>(messageSink, new DbFixture(messageSink))
 {
-    protected override void ConfigureStorage(IGlobalConfiguration hangfire)
+    protected override string ConfigureStorage(IGlobalConfiguration hangfire)
     {
         hangfire.UsePostgreSqlStorage(postgres => postgres.UseNpgsqlConnection(Container.GetConnectionString()));
+        return "Postgres";
     }
 
     private class DbFixture(IMessageSink messageSink) : DbContainerFixture<PostgreSqlBuilder, PostgreSqlContainer>(messageSink)

@@ -1,13 +1,15 @@
 using System.Threading.Tasks;
 using Hangfire.MemoryStorage;
+using Xunit.Abstractions;
 
 namespace Hangfire.SequentialJob.Tests;
 
-public class MemoryFixture : HangfireFixture
+public class MemoryFixture(IMessageSink messageSink) : HangfireFixture(messageSink)
 {
-    protected override void ConfigureStorage(IGlobalConfiguration hangfire)
+    protected override string ConfigureStorage(IGlobalConfiguration hangfire)
     {
         hangfire.UseMemoryStorage();
+        return "Memory";
     }
 
     protected override Task InitializeDbAsync() => Task.CompletedTask;

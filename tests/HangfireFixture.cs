@@ -9,16 +9,17 @@ using Microsoft.Extensions.Hosting;
 using Testcontainers.Xunit;
 using Xunit;
 using Xunit.Abstractions;
+using Xunit.Sdk;
 
 namespace Hangfire.SequentialJob.Tests;
 
-public abstract class HangfireFixture : IAsyncLifetime
+public abstract class HangfireFixture(IMessageSink messageSink) : IAsyncLifetime
 {
     // ReSharper disable ClassNeverInstantiated.Global
-    public class Memory : MemoryFixture;
+    public class Memory(IMessageSink messageSink) : MemoryFixture(messageSink);
     public class Mongo(IMessageSink messageSink) : MongoFixture(messageSink);
     public class Postgres(IMessageSink messageSink) : PostgresFixture(messageSink);
-    public class Sqlite : SqliteFixture;
+    public class Sqlite(IMessageSink messageSink) : SqliteFixture(messageSink);
     public class SqlServer(IMessageSink messageSink) : SqlServerFixture(messageSink);
     // ReSharper restore ClassNeverInstantiated.Global
 
@@ -27,13 +28,31 @@ public abstract class HangfireFixture : IAsyncLifetime
 
     private IHost? _host;
 
+    public ITestOutputHelper? Output { get; set; }
+
+    private void Log(string message)
+    {
+        if (Output == null)
+        {
+            messageSink.OnMessage(new DiagnosticMessage(message));
+        }
+        else
+        {
+            Output.WriteLine(message);
+        }
+    }
+
     async Task IAsyncLifetime.InitializeAsync()
     {
         JobFilterProviders.Providers.Add(new SequentialExecutionFilterProvider());
 
         var app = new HostApplicationBuilder();
         app.Services
-            .AddHangfire(ConfigureStorage)
+            .AddHangfire(hangfire =>
+            {
+                var description = ConfigureStorage(hangfire);
+                hangfire.UseLogProvider(new XunitLogProvider(description, Log));
+            })
             .AddHangfireServer();
         _host = app.Build();
 
@@ -58,10 +77,10 @@ public abstract class HangfireFixture : IAsyncLifetime
 
     protected abstract Task DisposeDbAsync();
 
-    protected abstract void ConfigureStorage(IGlobalConfiguration configuration);
+    protected abstract string ConfigureStorage(IGlobalConfiguration configuration);
 }
 
-public abstract class HangfireContainerFixture<TBuilderEntity, TContainerEntity>(ContainerFixture<TBuilderEntity, TContainerEntity> fixture) : HangfireFixture
+public abstract class HangfireContainerFixture<TBuilderEntity, TContainerEntity>(IMessageSink messageSink, ContainerFixture<TBuilderEntity, TContainerEntity> fixture) : HangfireFixture(messageSink)
     where TBuilderEntity : IContainerBuilder<TBuilderEntity, TContainerEntity, IContainerConfiguration>, new()
     where TContainerEntity : IContainer
 {

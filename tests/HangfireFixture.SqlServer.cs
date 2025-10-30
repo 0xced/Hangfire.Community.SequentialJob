@@ -6,11 +6,12 @@ using Xunit.Abstractions;
 
 namespace Hangfire.SequentialJob.Tests;
 
-public class SqlServerFixture(IMessageSink messageSink) : HangfireContainerFixture<MsSqlBuilder, MsSqlContainer>(new DbFixture(messageSink))
+public class SqlServerFixture(IMessageSink messageSink) : HangfireContainerFixture<MsSqlBuilder, MsSqlContainer>(messageSink, new DbFixture(messageSink))
 {
-    protected override void ConfigureStorage(IGlobalConfiguration hangfire)
+    protected override string ConfigureStorage(IGlobalConfiguration hangfire)
     {
         hangfire.UseSqlServerStorage(Container.GetConnectionString());
+        return "SqlServer";
     }
 
     private class DbFixture(IMessageSink messageSink) : DbContainerFixture<MsSqlBuilder, MsSqlContainer>(messageSink)

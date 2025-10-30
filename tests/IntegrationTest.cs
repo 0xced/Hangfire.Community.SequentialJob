@@ -9,30 +9,44 @@ using Hangfire.States;
 using Hangfire.Storage;
 using Hangfire.Storage.Monitoring;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Hangfire.SequentialJob.Tests;
 
-public abstract class IntegrationTest(HangfireFixture fixture)
+public abstract class IntegrationTest : IDisposable
 {
-    public class Memory(HangfireFixture.Memory fixture) : IntegrationTest(fixture), IClassFixture<HangfireFixture.Memory>;
-    public class Mongo(HangfireFixture.Mongo fixture) : IntegrationTest(fixture), IClassFixture<HangfireFixture.Mongo>;
-    public class Postgres(HangfireFixture.Postgres fixture) : IntegrationTest(fixture), IClassFixture<HangfireFixture.Postgres>;
-    public class Sqlite(HangfireFixture.Sqlite fixture) : IntegrationTest(fixture), IClassFixture<HangfireFixture.Sqlite>;
-    public class SqlServer(HangfireFixture.SqlServer fixture) : IntegrationTest(fixture), IClassFixture<HangfireFixture.SqlServer>;
+    public class Memory(HangfireFixture.Memory fixture, ITestOutputHelper output) : IntegrationTest(fixture, output), IClassFixture<HangfireFixture.Memory>;
+    public class Mongo(HangfireFixture.Mongo fixture, ITestOutputHelper output) : IntegrationTest(fixture, output), IClassFixture<HangfireFixture.Mongo>;
+    public class Postgres(HangfireFixture.Postgres fixture, ITestOutputHelper output) : IntegrationTest(fixture, output), IClassFixture<HangfireFixture.Postgres>;
+    public class Sqlite(HangfireFixture.Sqlite fixture, ITestOutputHelper output) : IntegrationTest(fixture, output), IClassFixture<HangfireFixture.Sqlite>;
+    public class SqlServer(HangfireFixture.SqlServer fixture, ITestOutputHelper output) : IntegrationTest(fixture, output), IClassFixture<HangfireFixture.SqlServer>;
 
-    private readonly IBackgroundJobClientV2 _backgroundJobClient = fixture.BackgroundJobClient;
-    private readonly IMonitoringApi _monitoringApi = fixture.BackgroundJobClient.Storage.GetMonitoringApi();
+    private readonly HangfireFixture _fixture;
+
+    private IBackgroundJobClientV2 BackgroundJobClient => _fixture.BackgroundJobClient;
+    private IMonitoringApi MonitoringApi => BackgroundJobClient.Storage.GetMonitoringApi();
+
+    protected IntegrationTest(HangfireFixture fixture, ITestOutputHelper output)
+    {
+        _fixture = fixture;
+        _fixture.Output = output;
+    }
+
+    public void Dispose()
+    {
+        _fixture.Output = null;
+    }
 
     [Fact]
     public async Task Test()
     {
-        var jobId1 = _backgroundJobClient.Create<TestJob>(o => o.Run("Hello 1"), new EnqueuedState());
-        var jobId2 = _backgroundJobClient.Create<TestJob>(o => o.Run("Hello 2"), new EnqueuedState());
+        var jobId1 = BackgroundJobClient.Create<TestJob>(o => o.Run("Hello 1"), new EnqueuedState());
+        var jobId2 = BackgroundJobClient.Create<TestJob>(o => o.Run("Hello 2"), new EnqueuedState());
 
         await WaitAsync(stats => stats.Succeeded == 2, timeout: TimeSpan.FromSeconds(10));
 
-        var job1 = _monitoringApi.JobDetails(jobId1);
-        var job2 = _monitoringApi.JobDetails(jobId2);
+        var job1 = MonitoringApi.JobDetails(jobId1);
+        var job2 = MonitoringApi.JobDetails(jobId2);
 
         using (new AssertionScope())
         {
@@ -45,7 +59,7 @@ public abstract class IntegrationTest(HangfireFixture fixture)
     {
         var stopwatch = Stopwatch.StartNew();
 
-        while (!predicate(_monitoringApi.GetStatistics()))
+        while (!predicate(MonitoringApi.GetStatistics()))
         {
             if (stopwatch.Elapsed > timeout)
             {
@@ -65,4 +79,3 @@ public abstract class IntegrationTest(HangfireFixture fixture)
         }
     }
 }
-
