@@ -91,7 +91,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="HangfireFixture.*.cs">
+    <Compile Update="Support/HangfireFixture.*.cs">
       <DependentUpon>HangfireFixture.cs</DependentUpon>
     </Compile>
   </ItemGroup>
@@ -99,6 +99,10 @@
   <ItemGroup>
     <Compile Remove="PublicApi.*.cs" />
     <None Include="PublicApi.*.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="*.DotSettings" Visible="false" />
   </ItemGroup>
 
 </Project>

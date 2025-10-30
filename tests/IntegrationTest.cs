@@ -1,21 +1,15 @@
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using AwesomeAssertions;
 using AwesomeAssertions.Execution;
 using Hangfire.States;
-using Hangfire.Storage;
-using Hangfire.Storage.Monitoring;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Hangfire.SequentialJob.Tests;
 
-public abstract class IntegrationTest : IDisposable
+public abstract class IntegrationTest(HangfireFixture fixture, ITestOutputHelper output) : HangfireTest(fixture, output)
 {
     public class InMemory(HangfireFixture.InMemory fixture, ITestOutputHelper output) : IntegrationTest(fixture, output), IClassFixture<HangfireFixture.InMemory>;
     public class Mongo(HangfireFixture.Mongo fixture, ITestOutputHelper output) : IntegrationTest(fixture, output), IClassFixture<HangfireFixture.Mongo>;
@@ -23,22 +17,6 @@ public abstract class IntegrationTest : IDisposable
     public class Redis(HangfireFixture.Redis fixture, ITestOutputHelper output) : IntegrationTest(fixture, output), IClassFixture<HangfireFixture.Redis>;
     public class Sqlite(HangfireFixture.Sqlite fixture, ITestOutputHelper output) : IntegrationTest(fixture, output), IClassFixture<HangfireFixture.Sqlite>;
     public class SqlServer(HangfireFixture.SqlServer fixture, ITestOutputHelper output) : IntegrationTest(fixture, output), IClassFixture<HangfireFixture.SqlServer>;
-
-    private readonly HangfireFixture _fixture;
-
-    private IBackgroundJobClientV2 BackgroundJobClient => _fixture.BackgroundJobClient;
-    private IMonitoringApi MonitoringApi => BackgroundJobClient.Storage.GetMonitoringApi();
-
-    protected IntegrationTest(HangfireFixture fixture, ITestOutputHelper output)
-    {
-        _fixture = fixture;
-        _fixture.Output = output;
-    }
-
-    public void Dispose()
-    {
-        _fixture.Output = null;
-    }
 
     [Fact]
     public async Task Test()
@@ -59,26 +37,6 @@ public abstract class IntegrationTest : IDisposable
             {
                 GetStates(jobIds[i]).Should().BeEquivalentTo(["Succeeded", "Processing", "Enqueued", "Awaiting", "Enqueued"], because: $"job #{i} should have transitioned through 5 states");
             }
-        }
-    }
-
-    private List<string> GetStates(string jobId)
-    {
-        return MonitoringApi.JobDetails(jobId).History.Select(e => e.StateName).ToList();
-    }
-
-    private async Task WaitAsync(Predicate<StatisticsDto> predicate, TimeSpan timeout, [CallerArgumentExpression(nameof(predicate))] string? predicateDescription = null)
-    {
-        var stopwatch = Stopwatch.StartNew();
-
-        while (!predicate(MonitoringApi.GetStatistics()))
-        {
-            if (stopwatch.Elapsed > timeout)
-            {
-                throw new TimeoutException($"Waited \"{predicateDescription}\" for {timeout.TotalSeconds:N0} seconds");
-            }
-
-            await Task.Delay(millisecondsDelay: 50);
         }
     }
 
