@@ -16,7 +16,7 @@ namespace Hangfire.SequentialJob.Tests;
 public abstract class HangfireFixture(IMessageSink messageSink) : IAsyncLifetime
 {
     // ReSharper disable ClassNeverInstantiated.Global
-    public class Memory(IMessageSink messageSink) : MemoryFixture(messageSink);
+    public class InMemory(IMessageSink messageSink) : InMemoryFixture(messageSink);
     public class Mongo(IMessageSink messageSink) : MongoFixture(messageSink);
     public class Postgres(IMessageSink messageSink) : PostgresFixture(messageSink);
     public class Sqlite(IMessageSink messageSink) : SqliteFixture(messageSink);
