@@ -20,6 +20,7 @@ public abstract class IntegrationTest : IDisposable
     public class InMemory(HangfireFixture.InMemory fixture, ITestOutputHelper output) : IntegrationTest(fixture, output), IClassFixture<HangfireFixture.InMemory>;
     public class Mongo(HangfireFixture.Mongo fixture, ITestOutputHelper output) : IntegrationTest(fixture, output), IClassFixture<HangfireFixture.Mongo>;
     public class Postgres(HangfireFixture.Postgres fixture, ITestOutputHelper output) : IntegrationTest(fixture, output), IClassFixture<HangfireFixture.Postgres>;
+    public class Redis(HangfireFixture.Redis fixture, ITestOutputHelper output) : IntegrationTest(fixture, output), IClassFixture<HangfireFixture.Redis>;
     public class Sqlite(HangfireFixture.Sqlite fixture, ITestOutputHelper output) : IntegrationTest(fixture, output), IClassFixture<HangfireFixture.Sqlite>;
     public class SqlServer(HangfireFixture.SqlServer fixture, ITestOutputHelper output) : IntegrationTest(fixture, output), IClassFixture<HangfireFixture.SqlServer>;
 

@@ -19,6 +19,7 @@ public abstract class HangfireFixture(IMessageSink messageSink) : IAsyncLifetime
     public class InMemory(IMessageSink messageSink) : InMemoryFixture(messageSink);
     public class Mongo(IMessageSink messageSink) : MongoFixture(messageSink);
     public class Postgres(IMessageSink messageSink) : PostgresFixture(messageSink);
+    public class Redis(IMessageSink messageSink) : RedisFixture(messageSink);
     public class Sqlite(IMessageSink messageSink) : SqliteFixture(messageSink);
     public class SqlServer(IMessageSink messageSink) : SqlServerFixture(messageSink);
     // ReSharper restore ClassNeverInstantiated.Global
