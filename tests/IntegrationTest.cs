@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading.Tasks;
 using AwesomeAssertions;
 using AwesomeAssertions.Execution;
@@ -19,13 +20,13 @@ public abstract class IntegrationTest(HangfireFixture fixture, ITestOutputHelper
     public class SqlServer(HangfireFixture.SqlServer fixture, ITestOutputHelper output) : IntegrationTest(fixture, output), IClassFixture<HangfireFixture.SqlServer>;
 
     [Fact]
-    public async Task Test()
+    public async Task TestSuccessStates()
     {
         var jobIds = new string[100];
         for (var i = 0; i < jobIds.Length; i++)
         {
-            var text = $"{i}";
-            jobIds[i] = BackgroundJobClient.Create<TestJob>(o => o.Run(text), new EnqueuedState());
+            var n = i;
+            jobIds[i] = BackgroundJobClient.Enqueue<AlwaysSucceed>(o => o.Run(n));
         }
 
         await WaitAsync(stats => stats.Succeeded == jobIds.Length, timeout: TimeSpan.FromSeconds(10));
@@ -35,19 +36,23 @@ public abstract class IntegrationTest(HangfireFixture fixture, ITestOutputHelper
             GetStates(jobIds[0]).Should().BeEquivalentTo(["Succeeded", "Processing", "Enqueued"], because: "the first job should have transitioned through 3 states");
             for (var i = 1; i < jobIds.Length; i++)
             {
-                GetStates(jobIds[i]).Should().BeEquivalentTo(["Succeeded", "Processing", "Enqueued", "Awaiting", "Enqueued"], because: $"job #{i} should have transitioned through 5 states");
+                var previousJobId = jobIds[i - 1];
+                var jobId = jobIds[i];
+                GetStates(jobId).Should().BeEquivalentTo(["Succeeded", "Processing", "Enqueued", "Awaiting", "Enqueued"], because: $"job #{i} should have transitioned through 5 states");
+                var parentId = MonitoringApi.JobDetails(jobId).History.Single(e => e.StateName == "Awaiting").Data["ParentId"];
+                parentId.Should().Be(previousJobId);
             }
         }
     }
 
     // ReSharper disable All
-    [SequentialJob("my-sequence")]
-    public class TestJob
+    [SequentialJob("always-succeed")]
+    public class AlwaysSucceed
     {
         [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Required for Hangfire")]
-        public string Run(string text)
+        public string Run(int number)
         {
-            return text;
+            return $"{number}";
         }
     }
 }

@@ -14,8 +14,6 @@ public abstract class HangfireTest : IDisposable
 {
     private readonly HangfireFixture _fixture;
 
-    private IMonitoringApi MonitoringApi => BackgroundJobClient.Storage.GetMonitoringApi();
-
     protected HangfireTest(HangfireFixture fixture, ITestOutputHelper output)
     {
         _fixture = fixture;
@@ -28,6 +26,7 @@ public abstract class HangfireTest : IDisposable
     }
 
     protected IBackgroundJobClientV2 BackgroundJobClient => _fixture.BackgroundJobClient;
+    protected IMonitoringApi MonitoringApi => BackgroundJobClient.Storage.GetMonitoringApi();
 
     protected List<string> GetStates(string jobId)
     {
