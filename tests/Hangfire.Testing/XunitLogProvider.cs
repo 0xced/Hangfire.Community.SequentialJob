@@ -3,9 +3,9 @@ using System.Text;
 using Hangfire.Logging;
 using static System.FormattableString;
 
-namespace Hangfire.SequentialJob.Tests;
+namespace Hangfire.Testing;
 
-public class XunitLogProvider(string description, Action<string> log) : ILogProvider
+internal class XunitLogProvider(string description, Action<string> log) : ILogProvider
 {
     public ILog GetLogger(string name) => new XunitLog(description, log, name);
 

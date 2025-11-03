@@ -4,11 +4,11 @@ using System.Threading.Tasks;
 using Hangfire.Storage.SQLite;
 using Xunit.Abstractions;
 
-namespace Hangfire.SequentialJob.Tests;
+namespace Hangfire.Testing.Sqlite;
 
-public class SqliteFixture(IMessageSink messageSink) : HangfireFixture(messageSink)
+public class HangfireSqliteFixture(IMessageSink messageSink) : HangfireFixture(messageSink)
 {
-    private const string DbFileName = "Hangfire.SequentialJob.Tests.db";
+    private const string DbFileName = "HangfireSqliteFixture.db";
 
     protected override string ConfigureStorage(IGlobalConfiguration hangfire)
     {
@@ -21,9 +21,9 @@ public class SqliteFixture(IMessageSink messageSink) : HangfireFixture(messageSi
         return "Sqlite";
     }
 
-    protected override Task InitializeDbAsync() => ClearDbAsync();
+    protected override Task InitializeStorageAsync() => ClearDbAsync();
 
-    protected override Task DisposeDbAsync() => ClearDbAsync();
+    protected override Task DisposeStorageAsync() => ClearDbAsync();
 
     private static Task ClearDbAsync()
     {

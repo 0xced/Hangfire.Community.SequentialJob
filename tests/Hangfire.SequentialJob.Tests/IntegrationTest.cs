@@ -1,10 +1,18 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
 using AwesomeAssertions;
 using AwesomeAssertions.Execution;
-using Hangfire.States;
+using Hangfire.Common;
+using Hangfire.Testing;
+using Hangfire.Testing.InMemory;
+using Hangfire.Testing.Mongo;
+using Hangfire.Testing.PostgreSql;
+using Hangfire.Testing.Redis;
+using Hangfire.Testing.Sqlite;
+using Hangfire.Testing.SqlServer;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -12,12 +20,17 @@ namespace Hangfire.SequentialJob.Tests;
 
 public abstract class IntegrationTest(HangfireFixture fixture, ITestOutputHelper output) : HangfireTest(fixture, output)
 {
-    public class InMemory(HangfireFixture.InMemory fixture, ITestOutputHelper output) : IntegrationTest(fixture, output), IClassFixture<HangfireFixture.InMemory>;
-    public class Mongo(HangfireFixture.Mongo fixture, ITestOutputHelper output) : IntegrationTest(fixture, output), IClassFixture<HangfireFixture.Mongo>;
-    public class Postgres(HangfireFixture.Postgres fixture, ITestOutputHelper output) : IntegrationTest(fixture, output), IClassFixture<HangfireFixture.Postgres>;
-    public class Redis(HangfireFixture.Redis fixture, ITestOutputHelper output) : IntegrationTest(fixture, output), IClassFixture<HangfireFixture.Redis>;
-    public class Sqlite(HangfireFixture.Sqlite fixture, ITestOutputHelper output) : IntegrationTest(fixture, output), IClassFixture<HangfireFixture.Sqlite>;
-    public class SqlServer(HangfireFixture.SqlServer fixture, ITestOutputHelper output) : IntegrationTest(fixture, output), IClassFixture<HangfireFixture.SqlServer>;
+    public class InMemory(HangfireInMemoryFixture fixture, ITestOutputHelper output) : IntegrationTest(fixture, output), IClassFixture<HangfireInMemoryFixture>;
+    public class Mongo(HangfireMongoFixture fixture, ITestOutputHelper output) : IntegrationTest(fixture, output), IClassFixture<HangfireMongoFixture>;
+    public class Postgres(HangfirePostgreSqlFixture fixture, ITestOutputHelper output) : IntegrationTest(fixture, output), IClassFixture<HangfirePostgreSqlFixture>;
+    public class Redis(HangfireRedisFixture fixture, ITestOutputHelper output) : IntegrationTest(fixture, output), IClassFixture<HangfireRedisFixture>;
+    public class Sqlite(HangfireSqliteFixture fixture, ITestOutputHelper output) : IntegrationTest(fixture, output), IClassFixture<HangfireSqliteFixture>;
+    public class SqlServer(HangfireSqlServerFixture fixture, ITestOutputHelper output) : IntegrationTest(fixture, output), IClassFixture<HangfireSqlServerFixture>;
+
+    static IntegrationTest()
+    {
+        JobFilterProviders.Providers.Add(new SequentialExecutionFilterProvider());
+    }
 
     [Fact]
     public async Task TestSuccessStates()
@@ -43,6 +56,11 @@ public abstract class IntegrationTest(HangfireFixture fixture, ITestOutputHelper
                 parentId.Should().Be(previousJobId);
             }
         }
+    }
+
+    private List<string> GetStates(string jobId)
+    {
+        return MonitoringApi.JobDetails(jobId).History.Select(e => e.StateName).ToList();
     }
 
     // ReSharper disable All

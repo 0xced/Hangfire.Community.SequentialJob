@@ -13,5 +13,13 @@
     <File Path=".github/workflows/continuous-integration.yml" />
   </Folder>
   <Project Path="src/Hangfire.SequentialJob.csproj" />
-  <Project Path="tests/Hangfire.SequentialJob.Tests.csproj" />
+  <Project Path="tests/Hangfire.SequentialJob.Tests/Hangfire.SequentialJob.Tests.csproj" />
+  <Project Path="tests/Hangfire.Testing/Hangfire.Testing.csproj" />
+  <Project Path="tests/Hangfire.Testing.InMemory/Hangfire.Testing.InMemory.csproj" />
+  <Project Path="tests/Hangfire.Testing.Mongo/Hangfire.Testing.Mongo.csproj" />
+  <Project Path="tests/Hangfire.Testing.PostgreSql/Hangfire.Testing.PostgreSql.csproj" />
+  <Project Path="tests/Hangfire.Testing.Redis/Hangfire.Testing.Redis.csproj" />
+  <Project Path="tests/Hangfire.Testing.Sqlite/Hangfire.Testing.Sqlite.csproj" />
+  <Project Path="tests/Hangfire.Testing.SqlServer/Hangfire.Testing.SqlServer.csproj" />
+  <Project Path="tests/Hangfire.Testing.Testcontainers/Hangfire.Testing.Testcontainers.csproj" />
 </Solution>

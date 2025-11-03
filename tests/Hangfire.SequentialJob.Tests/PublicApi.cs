@@ -26,7 +26,7 @@ public class PublicApi
         return Verifier.Verify(publicApi, "cs").UseFileName($"PublicApi.{targetFramework}");
     }
 
-    private static string GetSrcDirectoryPath([CallerFilePath] string path = "") => Path.Combine(Path.GetDirectoryName(path)!, "..", "src");
+    private static string GetSrcDirectoryPath([CallerFilePath] string path = "") => Path.Combine(Path.GetDirectoryName(path)!, "..", "..", "src");
 
     private class TargetFrameworksTheoryData : TheoryData<string>
     {
