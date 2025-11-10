@@ -12,8 +12,8 @@
   <Folder Name="/Meta/workflows/">
     <File Path=".github/workflows/continuous-integration.yml" />
   </Folder>
-  <Project Path="src/Hangfire.SequentialJob.csproj" />
-  <Project Path="tests/Hangfire.SequentialJob.Tests/Hangfire.SequentialJob.Tests.csproj" />
+  <Project Path="src/Hangfire.Community.SequentialJob.csproj" />
+  <Project Path="tests/Hangfire.Community.SequentialJob.Tests/Hangfire.Community.SequentialJob.Tests.csproj" />
   <Project Path="tests/Hangfire.Testing/Hangfire.Testing.csproj" />
   <Project Path="tests/Hangfire.Testing.InMemory/Hangfire.Testing.InMemory.csproj" />
   <Project Path="tests/Hangfire.Testing.Mongo/Hangfire.Testing.Mongo.csproj" />

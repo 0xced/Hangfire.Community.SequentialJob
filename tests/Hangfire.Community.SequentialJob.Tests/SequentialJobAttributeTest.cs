@@ -8,7 +8,7 @@ using Hangfire.Storage;
 using NSubstitute;
 using Xunit;
 
-namespace Hangfire.SequentialJob.Tests;
+namespace Hangfire.Community.SequentialJob.Tests;
 
 public class SequentialJobAttributeTest
 {

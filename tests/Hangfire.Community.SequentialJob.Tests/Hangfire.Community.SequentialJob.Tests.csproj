@@ -19,7 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../../src/Hangfire.SequentialJob.csproj" />
+    <ProjectReference Include="../../src/Hangfire.Community.SequentialJob.csproj" />
     <ProjectReference Include="../Hangfire.Testing.InMemory/Hangfire.Testing.InMemory.csproj" />
     <ProjectReference Include="../Hangfire.Testing.Mongo/Hangfire.Testing.Mongo.csproj" />
     <ProjectReference Include="../Hangfire.Testing.PostgreSql/Hangfire.Testing.PostgreSql.csproj" />

@@ -1,6 +1,6 @@
 ## Creating a release
 
-**Hangfire.SequentialJob** uses [MinVer](https://github.com/adamralph/minver) for its versioning, so a tag must exist with the chosen semantic version number in order to create an official release.
+**Hangfire.Community.SequentialJob** uses [MinVer](https://github.com/adamralph/minver) for its versioning, so a tag must exist with the chosen semantic version number in order to create an official release.
 
 1.  Update the [CHANGELOG](CHANGELOG.md) *Unreleased* section to the chosen version and copy the release notes for step #2.
 
@@ -11,7 +11,7 @@
 
    `git tag --annotate 1.0.0`
 
-3.  Push the `main` branch and ensure that the [build is successful](https://github.com/0xced/Hangfire.SequentialJob/actions).
+3.  Push the `main` branch and ensure that the [build is successful](https://github.com/0xced/Hangfire.Community.SequentialJob/actions).
 
    `git push`
    
@@ -19,10 +19,10 @@
 
    `git push --follow-tags`
 
-Once pushed, the GitHub [Continuous Integration](https://github.com/0xced/Hangfire.SequentialJob/blob/main/.github/workflows/continuous-integration.yml) workflow takes care of building, running the tests, creating the NuGet package, creating the GitHub release and finally publishing the produced NuGet package.
+Once pushed, the GitHub [Continuous Integration](https://github.com/0xced/Hangfire.Community.SequentialJob/blob/main/.github/workflows/continuous-integration.yml) workflow takes care of building, running the tests, creating the NuGet package, creating the GitHub release and finally publishing the produced NuGet package.
 
 After the NuGet package is successfully published:
 
-5.  If this is the first release, set `EnablePackageValidation` to `true` in `Hangfire.SequentialJob.csproj`.
-6.  Update the `PackageValidationBaselineVersion` element in `Hangfire.SequentialJob.csproj` to the newly released version.
+5.  If this is the first release, set `EnablePackageValidation` to `true` in `Hangfire.Community.SequentialJob.csproj`.
+6.  Update the `PackageValidationBaselineVersion` element in `Hangfire.Community.SequentialJob.csproj` to the newly released version.
 7.  Delete the `CompatibilitySuppressions.xml` file if there's one.

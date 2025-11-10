@@ -9,7 +9,7 @@ using PublicApiGenerator;
 using VerifyXunit;
 using Xunit;
 
-namespace Hangfire.SequentialJob.Tests;
+namespace Hangfire.Community.SequentialJob.Tests;
 
 public class PublicApi
 {
@@ -20,7 +20,7 @@ public class PublicApi
         var testAssembly = typeof(PublicApi).Assembly;
         var configuration = testAssembly.GetCustomAttribute<AssemblyConfigurationAttribute>()?.Configuration
                             ?? throw new Exception($"{nameof(AssemblyConfigurationAttribute)} not found in {testAssembly.Location}");
-        var assemblyPath = Path.Combine(GetSrcDirectoryPath(), "bin", configuration, targetFramework, "Hangfire.SequentialJob.dll");
+        var assemblyPath = Path.Combine(GetSrcDirectoryPath(), "bin", configuration, targetFramework, "Hangfire.Community.SequentialJob.dll");
         var assembly = Assembly.LoadFile(assemblyPath);
         var publicApi = assembly.GeneratePublicApi();
         return Verifier.Verify(publicApi, "cs").UseFileName($"PublicApi.{targetFramework}");
@@ -32,7 +32,7 @@ public class PublicApi
     {
         public TargetFrameworksTheoryData()
         {
-            var csprojPath = Path.Combine(GetSrcDirectoryPath(), "Hangfire.SequentialJob.csproj");
+            var csprojPath = Path.Combine(GetSrcDirectoryPath(), "Hangfire.Community.SequentialJob.csproj");
             var project = XDocument.Load(csprojPath);
             var targetFrameworks = project.XPathSelectElement("/Project/PropertyGroup/TargetFrameworks")?.Value.Split(';', StringSplitOptions.RemoveEmptyEntries)
                                    ?? [project.XPathSelectElement("/Project/PropertyGroup/TargetFramework")?.Value ?? throw new Exception($"TargetFramework(s) element not found in {csprojPath}")];

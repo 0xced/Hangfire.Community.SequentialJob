@@ -15,7 +15,7 @@ using Hangfire.Testing.SqlServer;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Hangfire.SequentialJob.Tests;
+namespace Hangfire.Community.SequentialJob.Tests;
 
 public abstract class IntegrationTest(HangfireFixture fixture, ITestOutputHelper output) : HangfireTest(fixture, output)
 {

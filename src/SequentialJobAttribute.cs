@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Hangfire.Common;
 using Hangfire.States;
 
-namespace Hangfire.SequentialJob;
+namespace Hangfire.Community.SequentialJob;
 
 /// <summary>
 /// Ensures that Hangfire jobs decorated with this attribute are executed sequentially, in enqueueing order.

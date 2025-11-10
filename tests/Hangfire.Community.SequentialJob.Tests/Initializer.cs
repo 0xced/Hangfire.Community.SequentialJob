@@ -1,7 +1,7 @@
 using System.Runtime.CompilerServices;
 using AwesomeAssertions;
 
-namespace Hangfire.SequentialJob.Tests;
+namespace Hangfire.Community.SequentialJob.Tests;
 
 public class Initializer
 {

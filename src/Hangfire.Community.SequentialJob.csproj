@@ -38,8 +38,8 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageTags>hangfire job queue serial</PackageTags>
-    <PackageProjectUrl>https://github.com/0xced/Hangfire.SequentialJob</PackageProjectUrl>
-    <PackageReleaseNotes>https://github.com/0xced/Hangfire.SequentialJob/blob/main/CHANGELOG.md</PackageReleaseNotes>
+    <PackageProjectUrl>https://github.com/0xced/Hangfire.Community.SequentialJob</PackageProjectUrl>
+    <PackageReleaseNotes>https://github.com/0xced/Hangfire.Community.SequentialJob/blob/main/CHANGELOG.md</PackageReleaseNotes>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
   </PropertyGroup>
 
