@@ -17,16 +17,24 @@ public sealed class SequentialJobAttribute : JobFilterAttribute, IElectStateFilt
     /// <param name="distributedLockName">The name of the Hangfire distributed lock used to synchronize access. Defaults to <c>SequentialExecutionLock</c>.</param>
     /// <param name="sequenceIdParameterName">The name of the Hangfire job parameter used to store the last processed job id. Defaults to <c>SequenceId</c>.</param>
     /// <param name="lastJobIdHashName">The name of the Hangfire hash used to store the last processed job id by sequence id. Defaults to <c>SequentialExecutionLastId</c>.</param>
-    public SequentialJobAttribute(string sequenceId, string? distributedLockName = null, string? sequenceIdParameterName = null, string? lastJobIdHashName = null)
+    /// <param name="timeoutInSeconds">The timeout (in seconds) for acquiring the distributed lock. Defaults to 10 seconds.</param>
+    public SequentialJobAttribute(string sequenceId, string? distributedLockName = null, string? sequenceIdParameterName = null, string? lastJobIdHashName = null, int timeoutInSeconds = 10)
     {
         SequenceId = sequenceId ?? throw new ArgumentNullException(nameof(sequenceId));
         if (string.IsNullOrWhiteSpace(sequenceId))
         {
             throw new ArgumentException("The value cannot be an empty string or composed entirely of whitespace.", nameof(sequenceId));
         }
+
         DistributedLockName = string.IsNullOrWhiteSpace(distributedLockName) ? "SequentialExecutionLock" : distributedLockName!;
         SequenceIdParameterName = string.IsNullOrWhiteSpace(sequenceIdParameterName) ? "SequenceId" : sequenceIdParameterName!;
         LastJobIdHashName = string.IsNullOrWhiteSpace(lastJobIdHashName) ? "SequentialExecutionLastId" : lastJobIdHashName!;
+
+        Timeout = TimeSpan.FromSeconds(timeoutInSeconds);
+        if (timeoutInSeconds < 0)
+        {
+            throw new ArgumentException("Timeout argument value should be greater that zero.", nameof(timeoutInSeconds));
+        }
     }
 
     /// <summary>
@@ -52,6 +60,12 @@ public sealed class SequentialJobAttribute : JobFilterAttribute, IElectStateFilt
     /// <remarks>Defaults to <c>SequentialExecutionLastId</c>.</remarks>
     public string LastJobIdHashName { get; }
 
+    /// <summary>
+    /// The timeout for acquiring the distributed lock.
+    /// <remarks>Defaults to 10 seconds.</remarks>
+    /// </summary>
+    public TimeSpan Timeout { get; }
+
     /// <inheritdoc/>
     void IElectStateFilter.OnStateElection(ElectStateContext context)
     {
@@ -65,7 +79,7 @@ public sealed class SequentialJobAttribute : JobFilterAttribute, IElectStateFilt
             return;
 
         // Do everything within a distributed lock to avoid concurrency issues.
-        using (context.Connection.AcquireDistributedLock(DistributedLockName, TimeSpan.FromSeconds(10)))
+        using (context.Connection.AcquireDistributedLock(DistributedLockName, Timeout))
         {
             // Skip filter if the job was already processed.
             var jobCurrentSequenceId = context.Connection.GetJobParameter(context.BackgroundJob.Id, SequenceIdParameterName);

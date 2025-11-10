@@ -91,6 +91,18 @@ public class SequentialJobAttributeTest
     }
 
     [Fact]
+    public void Timeout_Created_ShouldBe10Seconds()
+    {
+        // Arrange
+
+        // Act
+        var timeout = _target.Timeout;
+
+        // Assert
+        timeout.Should().Be(TimeSpan.FromSeconds(10));
+    }
+
+    [Fact]
     public void OnStateElection_CandidateStateIsEnqueued_VerifiesWhetherTheJobHasAlreadyBeenProcessed()
     {
         // Arrange
