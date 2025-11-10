@@ -5,7 +5,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using AwesomeAssertions;
 using AwesomeAssertions.Execution;
-using Hangfire.Common;
 using Hangfire.Testing;
 using Hangfire.Testing.InMemory;
 using Hangfire.Testing.Mongo;
@@ -26,11 +25,6 @@ public abstract class IntegrationTest(HangfireFixture fixture, ITestOutputHelper
     public class Redis(HangfireRedisFixture fixture, ITestOutputHelper output) : IntegrationTest(fixture, output), IClassFixture<HangfireRedisFixture>;
     public class Sqlite(HangfireSqliteFixture fixture, ITestOutputHelper output) : IntegrationTest(fixture, output), IClassFixture<HangfireSqliteFixture>;
     public class SqlServer(HangfireSqlServerFixture fixture, ITestOutputHelper output) : IntegrationTest(fixture, output), IClassFixture<HangfireSqlServerFixture>;
-
-    static IntegrationTest()
-    {
-        JobFilterProviders.Providers.Add(new SequentialExecutionFilterProvider());
-    }
 
     [Fact]
     public async Task TestSuccessStates()

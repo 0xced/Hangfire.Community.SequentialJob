@@ -3,24 +3,12 @@
 [assembly: System.Runtime.Versioning.TargetFramework(".NETStandard,Version=v2.0", FrameworkDisplayName=".NET Standard 2.0")]
 namespace Hangfire.SequentialJob
 {
-    public class SequentialExecutionFilter : Hangfire.States.IElectStateFilter
+    public sealed class SequentialJobAttribute : Hangfire.Common.JobFilterAttribute, Hangfire.States.IElectStateFilter
     {
-        public SequentialExecutionFilter(string sequenceId) { }
-        public string DistributedLockName { get; init; }
-        public string LastJobIdHashName { get; init; }
+        public SequentialJobAttribute(string sequenceId, string? distributedLockName = null, string? sequenceIdParameterName = null, string? lastJobIdHashName = null) { }
+        public string DistributedLockName { get; }
+        public string LastJobIdHashName { get; }
         public string SequenceId { get; }
-        public string SequenceIdParameterName { get; init; }
-        public void OnStateElection(Hangfire.States.ElectStateContext context) { }
-    }
-    public class SequentialExecutionFilterProvider : Hangfire.Common.IJobFilterProvider
-    {
-        public SequentialExecutionFilterProvider() { }
-        public System.Collections.Generic.IEnumerable<Hangfire.Common.JobFilter> GetFilters(Hangfire.Common.Job? job) { }
-    }
-    [System.AttributeUsage(System.AttributeTargets.Class)]
-    public sealed class SequentialJobAttribute : System.Attribute
-    {
-        public SequentialJobAttribute(string sequenceId) { }
-        public string SequenceId { get; }
+        public string SequenceIdParameterName { get; }
     }
 }

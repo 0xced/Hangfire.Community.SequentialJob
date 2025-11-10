@@ -65,7 +65,6 @@
   <ItemGroup>
     <PackageReference Include="Hangfire.Core" Version="1.8.0" />
     <PackageReference Include="MinVer" Version="6.0.0" PrivateAssets="all" />
-    <PackageReference Include="PolySharp" Version="1.15.0" PrivateAssets="all" />
   </ItemGroup>
 
   <Target Name="ValidateNuGetPackage" AfterTargets="Pack">
