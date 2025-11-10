@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Hangfire.Mongo" Version="1.12.1" />
+    <PackageReference Include="Hangfire.Mongo" Version="1.12.2" />
     <PackageReference Include="Testcontainers.MongoDb" Version="4.8.1" />
   </ItemGroup>
 
