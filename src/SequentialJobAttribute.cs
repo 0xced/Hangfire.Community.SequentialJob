@@ -13,32 +13,37 @@ public sealed class SequentialJobAttribute : JobFilterAttribute, IElectStateFilt
     /// <summary>
     /// Creates a new instance of the <see cref="SequentialJobAttribute"/> class.
     /// </summary>
-    /// <param name="sequenceId"> The value that uniquely identifies the serial execution sequence. All jobs with the same sequence identifier are executed sequentially, in enqueueing order.</param>
-    /// <param name="distributedLockName">The name of the Hangfire distributed lock used to synchronize access. Defaults to <c>SequentialExecutionLock</c>.</param>
+    /// <param name="sequenceId"> The value that uniquely identifies the execution sequence. All jobs with the same sequence identifier are executed sequentially, in enqueueing order.</param>
     /// <param name="sequenceIdParameterName">The name of the Hangfire job parameter used to store the last processed job id. Defaults to <c>SequenceId</c>.</param>
+    /// <param name="distributedLockName">The name of the Hangfire distributed lock used to synchronize access. Defaults to <c>SequentialExecutionLock</c>.</param>
     /// <param name="lastJobIdHashName">The name of the Hangfire hash used to store the last processed job id by sequence id. Defaults to <c>SequentialExecutionLastId</c>.</param>
     /// <param name="timeoutInSeconds">The timeout (in seconds) for acquiring the distributed lock. Defaults to 10 seconds.</param>
-    public SequentialJobAttribute(string sequenceId, string? distributedLockName = null, string? sequenceIdParameterName = null, string? lastJobIdHashName = null, int timeoutInSeconds = 10)
+    public SequentialJobAttribute(string sequenceId,
+        string sequenceIdParameterName = "SequenceId",
+        string distributedLockName = "SequentialExecutionLock",
+        string lastJobIdHashName = "SequentialExecutionLastId",
+        int timeoutInSeconds = 10)
     {
         SequenceId = sequenceId ?? throw new ArgumentNullException(nameof(sequenceId));
-        if (string.IsNullOrWhiteSpace(sequenceId))
-        {
-            throw new ArgumentException("The value cannot be an empty string or composed entirely of whitespace.", nameof(sequenceId));
-        }
-
-        DistributedLockName = string.IsNullOrWhiteSpace(distributedLockName) ? "SequentialExecutionLock" : distributedLockName!;
-        SequenceIdParameterName = string.IsNullOrWhiteSpace(sequenceIdParameterName) ? "SequenceId" : sequenceIdParameterName!;
-        LastJobIdHashName = string.IsNullOrWhiteSpace(lastJobIdHashName) ? "SequentialExecutionLastId" : lastJobIdHashName!;
-
+        SequenceIdParameterName = sequenceIdParameterName ?? throw new ArgumentNullException(nameof(sequenceIdParameterName));
+        DistributedLockName = distributedLockName ?? throw new ArgumentNullException(nameof(distributedLockName));
+        LastJobIdHashName = lastJobIdHashName ?? throw new ArgumentNullException(nameof(lastJobIdHashName));
         Timeout = TimeSpan.FromSeconds(timeoutInSeconds);
+
+        if (string.IsNullOrWhiteSpace(sequenceId))
+            throw new ArgumentException("The value cannot be an empty string or composed entirely of whitespace.", nameof(sequenceId));
+        if (string.IsNullOrWhiteSpace(sequenceIdParameterName))
+            throw new ArgumentException("The value cannot be an empty string or composed entirely of whitespace.", nameof(sequenceIdParameterName));
+        if (string.IsNullOrWhiteSpace(distributedLockName))
+            throw new ArgumentException("The value cannot be an empty string or composed entirely of whitespace.", nameof(distributedLockName));
+        if (string.IsNullOrWhiteSpace(lastJobIdHashName))
+            throw new ArgumentException("The value cannot be an empty string or composed entirely of whitespace.", nameof(lastJobIdHashName));
         if (timeoutInSeconds < 0)
-        {
             throw new ArgumentException("Timeout argument value should be greater that zero.", nameof(timeoutInSeconds));
-        }
     }
 
     /// <summary>
-    /// The value that uniquely identifies the serial execution sequence. All jobs with the same sequence identifier are executed sequentially, in enqueueing order.
+    /// The value that uniquely identifies the execution sequence. All jobs with the same sequence identifier are executed sequentially, in enqueueing order.
     /// </summary>
     public string SequenceId { get; }
 
@@ -86,7 +91,7 @@ public sealed class SequentialJobAttribute : JobFilterAttribute, IElectStateFilt
             if (!string.IsNullOrEmpty(jobCurrentSequenceId))
                 return;
 
-            // Fetch the last job id for the queue.
+            // Fetch the last job id.
             var hashData = context.Connection.GetAllEntriesFromHash(LastJobIdHashName);
 
             // Change the state if required.
@@ -97,15 +102,15 @@ public sealed class SequentialJobAttribute : JobFilterAttribute, IElectStateFilt
                 if (jobData != null)
                 {
                     // Options to continue on any finished state is important. It will allow the job to run when the state becomes Succeeded or Deleted.
-                    var reason = $"Serial execution on sequence {SequenceId}";
+                    var reason = $"Sequential execution of {SequenceId}";
                     context.CandidateState = new AwaitingState(parentId: lastEnqueuedId, nextState: context.CandidateState, options: JobContinuationOptions.OnAnyFinishedState) { Reason = reason };
                 }
             }
 
-            // Mark the job as processed. This also exposes the serialization sequence id for the dashboard.
+            // Mark the job as processed. This also exposes the sequence id for the dashboard.
             context.Connection.SetJobParameter(context.BackgroundJob.Id, SequenceIdParameterName, SequenceId);
 
-            // Update the last queued job id for the next job in the queue.
+            // Update the last enqueued job id for the next job.
             context.Connection.SetRangeInHash(LastJobIdHashName, [new KeyValuePair<string, string>(SequenceId, context.BackgroundJob.Id)]);
         }
     }
