@@ -39,7 +39,7 @@ public sealed class SequentialJobAttribute : JobFilterAttribute, IElectStateFilt
         if (string.IsNullOrWhiteSpace(lastJobIdHashName))
             throw new ArgumentException("The value cannot be an empty string or composed entirely of whitespace.", nameof(lastJobIdHashName));
         if (timeoutInSeconds < 0)
-            throw new ArgumentException("Timeout argument value should be greater that zero.", nameof(timeoutInSeconds));
+            throw new ArgumentException("The timeout value must be greater than zero.", nameof(timeoutInSeconds));
     }
 
     /// <summary>
@@ -97,11 +97,11 @@ public sealed class SequentialJobAttribute : JobFilterAttribute, IElectStateFilt
             // Change the state if required.
             if (hashData != null && hashData.TryGetValue(SequenceId, out var lastEnqueuedId) && !string.IsNullOrEmpty(lastEnqueuedId))
             {
-                // Successful jobs are deleted after some period of time so we must check if it still exists (i.e. jobData != null) because an AwaitingState can't be dependent on a non-existent job.
+                // Successful jobs are deleted after some period of time, so we must check if it still exists (i.e., jobData != null) because an AwaitingState can't be dependent on a non-existent job.
                 var jobData = context.Connection.GetJobData(lastEnqueuedId);
                 if (jobData != null)
                 {
-                    // Options to continue on any finished state is important. It will allow the job to run when the state becomes Succeeded or Deleted.
+                    // Options to continue on any finished state are important. It will allow the job to run when the state becomes Succeeded or Deleted.
                     var reason = $"Sequential execution of {SequenceId}";
                     context.CandidateState = new AwaitingState(parentId: lastEnqueuedId, nextState: context.CandidateState, options: JobContinuationOptions.OnAnyFinishedState) { Reason = reason };
                 }
