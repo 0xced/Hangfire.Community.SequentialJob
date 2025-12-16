@@ -1,5 +1,5 @@
 ﻿[assembly: System.CLSCompliant(true)]
-[assembly: System.Reflection.AssemblyMetadata("RepositoryUrl", "")]
+[assembly: System.Reflection.AssemblyMetadata("RepositoryUrl", "https://github.com/0xced/Hangfire.Community.SequentialJob")]
 [assembly: System.Runtime.Versioning.TargetFramework(".NETStandard,Version=v2.0", FrameworkDisplayName=".NET Standard 2.0")]
 namespace Hangfire.Community.SequentialJob
 {
