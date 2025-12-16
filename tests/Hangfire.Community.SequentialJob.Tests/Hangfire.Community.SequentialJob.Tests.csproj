@@ -30,7 +30,6 @@
 
   <ItemGroup>
     <VSTestLogger Include="trx%3BLogFileName=TestResults-$(TargetFramework).trx" Visible="false" Condition="$(ContinuousIntegrationBuild) == 'true'" />
-    <VSTestLogger Include="html%3BLogFileName=TestResults-$(TargetFramework).html" Visible="false" />
   </ItemGroup>
 
   <PropertyGroup Label="Coverage">
