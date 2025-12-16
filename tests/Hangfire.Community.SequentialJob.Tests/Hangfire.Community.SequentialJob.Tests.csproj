@@ -33,7 +33,7 @@
   </ItemGroup>
 
   <PropertyGroup Label="Coverage">
-    <RootDirectory>$([System.IO.Path]::Combine($(MSBuildProjectDirectory), '..', '..'))</RootDirectory>
+    <RootDirectory>$([System.IO.Path]::GetFullPath($([System.IO.Path]::Combine($(MSBuildProjectDirectory), '..', '..'))))</RootDirectory>
     <CoverageReportDirectory>$([System.IO.Path]::Combine($(RootDirectory),'coverage',$(TargetFramework)))</CoverageReportDirectory>
     <VSTestResultsDirectory Condition="$(ContinuousIntegrationBuild) == 'true'">$(RootDirectory)</VSTestResultsDirectory>
     <VSTestResultsDirectory Condition="$(ContinuousIntegrationBuild) != 'true'">$([System.IO.Path]::Combine($(CoverageReportDirectory),'results'))</VSTestResultsDirectory>
