@@ -33,7 +33,7 @@
   <PropertyGroup Label="Packaging Metadata">
     <Authors>Cédric Luthi</Authors>
     <Copyright>Copyright © Cédric Luthi</Copyright>
-    <Description>Hangfire extension to ensure sequential execution of jobs</Description>
+    <Description>Hangfire extension that guarantees sequential execution of specific jobs</Description>
     <PackageIcon>icon.png</PackageIcon>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
