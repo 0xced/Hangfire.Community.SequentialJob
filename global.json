@@ -1,5 +1,5 @@
 {
-  "$schema": "https://json.schemastore.org/global",
+  "$schema": "https://www.schemastore.org/global.json",
   "sdk": {
     "version": "8.0.300",
     "allowPrerelease": false,
