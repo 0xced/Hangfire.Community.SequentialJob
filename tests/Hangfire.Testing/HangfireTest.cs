@@ -32,11 +32,14 @@ public abstract class HangfireTest : IDisposable
     {
         var stopwatch = Stopwatch.StartNew();
 
-        while (!predicate(MonitoringApi.GetStatistics()))
+        StatisticsDto stats;
+        while (!predicate(stats = MonitoringApi.GetStatistics()))
         {
             if (stopwatch.Elapsed > timeout)
             {
-                throw new TimeoutException($"Waited \"{predicateDescription}\" for {timeout.TotalSeconds:N0} seconds");
+                throw new TimeoutException($"Waited \"{predicateDescription}\" for {timeout.TotalSeconds:N0} seconds (Servers: {stats.Servers}, " +
+                                           $"Recurring: {stats.Recurring}, Enqueued: {stats.Enqueued}, Queues: {stats.Queues}, Scheduled: {stats.Scheduled}, Processing: {stats.Processing}, " +
+                                           $"Succeeded: {stats.Succeeded}, Failed: {stats.Failed}, Deleted: {stats.Deleted}, Retries: {stats.Retries}, Awaiting: {stats.Awaiting})");
             }
 
             await Task.Delay(millisecondsDelay: 50);
