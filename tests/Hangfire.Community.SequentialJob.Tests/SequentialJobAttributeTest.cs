@@ -55,18 +55,6 @@ public class SequentialJobAttributeTest
     }
 
     [Fact]
-    public void DistributedLockName_Created_ShouldBeSequentialExecutionLock()
-    {
-        // Arrange
-
-        // Act
-        var distributedLockName = _target.DistributedLockName;
-
-        // Assert
-        distributedLockName.Should().Be("SequentialExecutionLock");
-    }
-
-    [Fact]
     public void SequenceIdParameterName_Created_ShouldBeSequenceId()
     {
         // Arrange
@@ -180,7 +168,7 @@ public class SequentialJobAttributeTest
         Filter.OnStateElection(context);
 
         // Assert
-        context.Connection.Received(1).AcquireDistributedLock(_target.DistributedLockName, Arg.Is<TimeSpan>(x => x > TimeSpan.FromSeconds(5)));
+        context.Connection.Received(1).AcquireDistributedLock("SequentialJob:my-sequence-id", Arg.Is<TimeSpan>(x => x > TimeSpan.FromSeconds(5)));
     }
 
     [Fact]
@@ -190,7 +178,7 @@ public class SequentialJobAttributeTest
         var distributedLock = new MockDistributedLockProvider();
         var context = CreateElectStateContext(new EnqueuedState(), jobId: "job-1");
 
-        context.Connection.AcquireDistributedLock(_target.DistributedLockName, Arg.Any<TimeSpan>()).Returns(_ => distributedLock.Acquire());
+        context.Connection.AcquireDistributedLock(Arg.Any<string>(), Arg.Any<TimeSpan>()).Returns(_ => distributedLock.Acquire());
 
         var calls = new List<(string method, bool hasLock)>();
         void AddCall(string storeName, string memberName) => calls.Add(($"{storeName}.{memberName}", distributedLock.IsLocked));

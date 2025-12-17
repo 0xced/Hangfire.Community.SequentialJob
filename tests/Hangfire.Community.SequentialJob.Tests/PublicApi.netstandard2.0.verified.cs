@@ -5,8 +5,7 @@ namespace Hangfire.Community.SequentialJob
 {
     public sealed class SequentialJobAttribute : Hangfire.Common.JobFilterAttribute, Hangfire.States.IElectStateFilter
     {
-        public SequentialJobAttribute(string sequenceId, string sequenceIdParameterName = "SequenceId", string distributedLockName = "SequentialExecutionLock", string lastJobIdHashName = "SequentialExecutionLastId", int timeoutInSeconds = 10) { }
-        public string DistributedLockName { get; }
+        public SequentialJobAttribute(string sequenceId, string sequenceIdParameterName = "SequenceId", string lastJobIdHashName = "SequentialExecutionLastId", int timeoutInSeconds = 10) { }
         public string LastJobIdHashName { get; }
         public string SequenceId { get; }
         public string SequenceIdParameterName { get; }

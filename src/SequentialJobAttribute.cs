@@ -15,18 +15,15 @@ public sealed class SequentialJobAttribute : JobFilterAttribute, IElectStateFilt
     /// </summary>
     /// <param name="sequenceId"> The value that uniquely identifies the execution sequence. All jobs with the same sequence identifier are executed sequentially, in enqueueing order.</param>
     /// <param name="sequenceIdParameterName">The name of the Hangfire job parameter used to store the last processed job id. Defaults to <c>SequenceId</c>.</param>
-    /// <param name="distributedLockName">The name of the Hangfire distributed lock used to synchronize access. Defaults to <c>SequentialExecutionLock</c>.</param>
     /// <param name="lastJobIdHashName">The name of the Hangfire hash used to store the last processed job id by sequence id. Defaults to <c>SequentialExecutionLastId</c>.</param>
     /// <param name="timeoutInSeconds">The timeout (in seconds) for acquiring the distributed lock. Defaults to 10 seconds.</param>
     public SequentialJobAttribute(string sequenceId,
         string sequenceIdParameterName = "SequenceId",
-        string distributedLockName = "SequentialExecutionLock",
         string lastJobIdHashName = "SequentialExecutionLastId",
         int timeoutInSeconds = 10)
     {
         SequenceId = sequenceId ?? throw new ArgumentNullException(nameof(sequenceId));
         SequenceIdParameterName = sequenceIdParameterName ?? throw new ArgumentNullException(nameof(sequenceIdParameterName));
-        DistributedLockName = distributedLockName ?? throw new ArgumentNullException(nameof(distributedLockName));
         LastJobIdHashName = lastJobIdHashName ?? throw new ArgumentNullException(nameof(lastJobIdHashName));
         Timeout = TimeSpan.FromSeconds(timeoutInSeconds);
 
@@ -34,8 +31,6 @@ public sealed class SequentialJobAttribute : JobFilterAttribute, IElectStateFilt
             throw new ArgumentException("The value cannot be an empty string or composed entirely of whitespace.", nameof(sequenceId));
         if (string.IsNullOrWhiteSpace(sequenceIdParameterName))
             throw new ArgumentException("The value cannot be an empty string or composed entirely of whitespace.", nameof(sequenceIdParameterName));
-        if (string.IsNullOrWhiteSpace(distributedLockName))
-            throw new ArgumentException("The value cannot be an empty string or composed entirely of whitespace.", nameof(distributedLockName));
         if (string.IsNullOrWhiteSpace(lastJobIdHashName))
             throw new ArgumentException("The value cannot be an empty string or composed entirely of whitespace.", nameof(lastJobIdHashName));
         if (timeoutInSeconds < 0)
@@ -46,12 +41,6 @@ public sealed class SequentialJobAttribute : JobFilterAttribute, IElectStateFilt
     /// The value that uniquely identifies the execution sequence. All jobs with the same sequence identifier are executed sequentially, in enqueueing order.
     /// </summary>
     public string SequenceId { get; }
-
-    /// <summary>
-    /// The name of the Hangfire distributed lock used to synchronize access.
-    /// </summary>
-    /// <remarks>Defaults to <c>SequentialExecutionLock</c>.</remarks>
-    public string DistributedLockName { get; }
 
     /// <summary>
     /// The name of the Hangfire job parameter used to store the last processed job id.
@@ -84,7 +73,7 @@ public sealed class SequentialJobAttribute : JobFilterAttribute, IElectStateFilt
             return;
 
         // Do everything within a distributed lock to avoid concurrency issues.
-        using (context.Connection.AcquireDistributedLock(DistributedLockName, Timeout))
+        using (context.Connection.AcquireDistributedLock($"SequentialJob:{SequenceId}", Timeout))
         {
             // Skip filter if the job was already processed.
             var jobCurrentSequenceId = context.Connection.GetJobParameter(context.BackgroundJob.Id, SequenceIdParameterName);
