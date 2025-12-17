@@ -25,6 +25,24 @@ public class OrdersProcessor
 }
 ```
 
+> [!TIP] 
+> The sequence identifier can contain a [composite format string](https://learn.microsoft.com/en-us/dotnet/standard/base-types/composite-formatting) that will be replaced by the job actual arguments.
+
+The example below uses one sequence per customer. For customer 1234, the sequence identifier will be `orders-1234`.
+
+```csharp
+[SequentialJob("orders-{1}")]
+public class OrdersProcessor
+{
+    public async Task<string> RunAsync(int orderId, int customerId)
+    {
+        // Actually process the order …
+        
+        return $"Order {orderId} processed for customer {customerId}";
+    }
+}
+```
+
 ## Why sequential jobs?
 
 Some workloads must never overlap, for example:

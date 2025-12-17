@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Hangfire.Common;
 using Hangfire.States;
 
@@ -13,7 +14,10 @@ public sealed class SequentialJobAttribute : JobFilterAttribute, IElectStateFilt
     /// <summary>
     /// Creates a new instance of the <see cref="SequentialJobAttribute"/> class.
     /// </summary>
-    /// <param name="sequenceId"> The value that uniquely identifies the execution sequence. All jobs with the same sequence identifier are executed sequentially, in enqueueing order.</param>
+    /// <param name="sequenceId">
+    /// The value that uniquely identifies the execution sequence. All jobs with the same sequence identifier are executed sequentially, in enqueueing order. The sequence identifier
+    /// can contain a <see href="https://learn.microsoft.com/en-us/dotnet/standard/base-types/composite-formatting">composite format string</see> that will be replaced by the job actual arguments.
+    /// </param>
     /// <param name="sequenceIdParameterName">The name of the Hangfire job parameter used to store the last processed job id. Defaults to <c>SequenceId</c>.</param>
     /// <param name="lastJobIdHashName">The name of the Hangfire hash used to store the last processed job id by sequence id. Defaults to <c>SequentialExecutionLastId</c>.</param>
     /// <param name="timeoutInSeconds">The timeout (in seconds) for acquiring the distributed lock. Defaults to 10 seconds.</param>
@@ -38,7 +42,8 @@ public sealed class SequentialJobAttribute : JobFilterAttribute, IElectStateFilt
     }
 
     /// <summary>
-    /// The value that uniquely identifies the execution sequence. All jobs with the same sequence identifier are executed sequentially, in enqueueing order.
+    /// The value that uniquely identifies the execution sequence. All jobs with the same sequence identifier are executed sequentially, in enqueueing order. The sequence identifier
+    /// can contain a <see href="https://learn.microsoft.com/en-us/dotnet/standard/base-types/composite-formatting">composite format string</see> that will be replaced by the job actual arguments.
     /// </summary>
     public string SequenceId { get; }
 
@@ -72,8 +77,10 @@ public sealed class SequentialJobAttribute : JobFilterAttribute, IElectStateFilt
         if (context.CandidateState is not EnqueuedState)
             return;
 
+        var sequenceId = string.Format(SequenceId, context.BackgroundJob.Job.Args.ToArray());
+
         // Do everything within a distributed lock to avoid concurrency issues.
-        using (context.Connection.AcquireDistributedLock($"SequentialJob:{SequenceId}", Timeout))
+        using (context.Connection.AcquireDistributedLock($"SequentialJob:{sequenceId}", Timeout))
         {
             // Skip filter if the job was already processed.
             var jobCurrentSequenceId = context.Connection.GetJobParameter(context.BackgroundJob.Id, SequenceIdParameterName);
@@ -84,23 +91,23 @@ public sealed class SequentialJobAttribute : JobFilterAttribute, IElectStateFilt
             var hashData = context.Connection.GetAllEntriesFromHash(LastJobIdHashName);
 
             // Change the state if required.
-            if (hashData != null && hashData.TryGetValue(SequenceId, out var lastEnqueuedId) && !string.IsNullOrEmpty(lastEnqueuedId))
+            if (hashData != null && hashData.TryGetValue(sequenceId, out var lastEnqueuedId) && !string.IsNullOrEmpty(lastEnqueuedId))
             {
                 // Successful jobs are deleted after some period of time, so we must check if it still exists (i.e., jobData != null) because an AwaitingState can't be dependent on a non-existent job.
                 var jobData = context.Connection.GetJobData(lastEnqueuedId);
                 if (jobData != null)
                 {
                     // Options to continue on any finished state are important. It will allow the job to run when the state becomes Succeeded or Deleted.
-                    var reason = $"Sequential execution of {SequenceId}";
+                    var reason = $"Sequential execution of {sequenceId}";
                     context.CandidateState = new AwaitingState(parentId: lastEnqueuedId, nextState: context.CandidateState, options: JobContinuationOptions.OnAnyFinishedState) { Reason = reason };
                 }
             }
 
             // Mark the job as processed. This also exposes the sequence id for the dashboard.
-            context.Connection.SetJobParameter(context.BackgroundJob.Id, SequenceIdParameterName, SequenceId);
+            context.Connection.SetJobParameter(context.BackgroundJob.Id, SequenceIdParameterName, sequenceId);
 
             // Update the last enqueued job id for the next job.
-            context.Connection.SetRangeInHash(LastJobIdHashName, [new KeyValuePair<string, string>(SequenceId, context.BackgroundJob.Id)]);
+            context.Connection.SetRangeInHash(LastJobIdHashName, [new KeyValuePair<string, string>(sequenceId, context.BackgroundJob.Id)]);
         }
     }
 }

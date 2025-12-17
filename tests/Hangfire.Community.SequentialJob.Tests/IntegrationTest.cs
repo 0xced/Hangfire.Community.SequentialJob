@@ -33,7 +33,7 @@ public abstract class IntegrationTest(HangfireFixture fixture, ITestOutputHelper
         for (var i = 0; i < jobIds.Length; i++)
         {
             var n = i;
-            jobIds[i] = BackgroundJobClient.Enqueue<AlwaysSucceed>(o => o.Run(n));
+            jobIds[i] = BackgroundJobClient.Enqueue<AlwaysSucceed>(o => o.Run(n, n % 2));
         }
 
         await WaitAsync(stats => stats.Succeeded == jobIds.Length, timeout: TimeSpan.FromSeconds(10));
@@ -41,9 +41,10 @@ public abstract class IntegrationTest(HangfireFixture fixture, ITestOutputHelper
         using (new AssertionScope())
         {
             GetStates(jobIds[0]).Should().BeEquivalentTo(["Succeeded", "Processing", "Enqueued"], because: "the first job should have transitioned through 3 states");
-            for (var i = 1; i < jobIds.Length; i++)
+            GetStates(jobIds[1]).Should().BeEquivalentTo(["Succeeded", "Processing", "Enqueued"], because: "the first job should have transitioned through 3 states");
+            for (var i = 2; i < jobIds.Length; i++)
             {
-                var previousJobId = jobIds[i - 1];
+                var previousJobId = jobIds[i - 2];
                 var jobId = jobIds[i];
                 GetStates(jobId).Should().BeEquivalentTo(["Succeeded", "Processing", "Enqueued", "Awaiting", "Enqueued"], because: $"job #{i} should have transitioned through 5 states");
                 var parentId = MonitoringApi.JobDetails(jobId).History.Single(e => e.StateName == "Awaiting").Data["ParentId"];
@@ -58,11 +59,11 @@ public abstract class IntegrationTest(HangfireFixture fixture, ITestOutputHelper
     }
 
     // ReSharper disable All
-    [SequentialJob("always-succeed")]
+    [SequentialJob("always-succeed({1})")]
     public class AlwaysSucceed
     {
         [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Required for Hangfire")]
-        public string Run(int number)
+        public string Run(int number, int remainder)
         {
             return $"{number}";
         }
