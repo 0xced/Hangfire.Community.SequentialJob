@@ -1,6 +1,16 @@
 [Hangfire](https://www.hangfire.io) extension that guarantees **sequential execution** of specific jobs
 
-[![NuGet](https://img.shields.io/nuget/v/Hangfire.Community.SequentialJob.svg?label=NuGet&logo=NuGet)](https://www.nuget.org/packages/Hangfire.Community.SequentialJob/) [![Continuous Integration](https://img.shields.io/github/actions/workflow/status/0xced/Hangfire.Community.SequentialJob/continuous-integration.yml?branch=main&label=Continuous%20Integration&logo=GitHub)](https://github.com/0xced/Hangfire.Community.SequentialJob/actions/workflows/continuous-integration.yml) [![Coverage](https://img.shields.io/codecov/c/github/0xced/Hangfire.Community.SequentialJob?label=Coverage&logo=Codecov&logoColor=f5f5f5)](https://codecov.io/gh/0xced/Hangfire.Community.SequentialJob)
+[![NuGet](https://img.shields.io/nuget/v/Hangfire.Community.SequentialJob.svg?label=NuGet&logo=NuGet)](https://www.nuget.org/packages/Hangfire.Community.SequentialJob/) [![Continuous Integration](https://img.shields.io/github/actions/workflow/status/0xced/Hangfire.Community.SequentialJob/continuous-integration.yml?branch=main&label=Continuous%20Integration&logo=GitHub)](https://github.com/0xced/Hangfire.Community.SequentialJob/actions/workflows/continuous-integration.yml)
+
+## Why sequential jobs?
+
+Some workloads must never overlap, for example:
+
+- Importing data from an external system where each run depends on the previous one.
+- Updating shared resources that are not fully concurrency-safe.
+- Long-running workflows where the business rules require strict ordering.
+
+With this package, you can keep using Hangfire's background processing and retries, while ensuring that certain jobs follow a strict sequence.
 
 ## Getting started
 
@@ -43,12 +53,6 @@ public class OrdersProcessor
 }
 ```
 
-## Why sequential jobs?
+## Credits
 
-Some workloads must never overlap, for example:
-
-- Importing data from an external system where each run depends on the previous one.
-- Updating shared resources that are not fully concurrency-safe.
-- Long-running workflows where the business rules require strict ordering.
-
-With this package, you can keep using Hangfire’s background processing and retries, while ensuring that certain jobs follow a strict sequence.
+Thanks to Damien Braillard ([@DamienBraillard](https://github.com/DamienBraillard)) who worked with me on this package.
